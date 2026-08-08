@@ -1,0 +1,1 @@
+var CodeMR_ProjectMetrics = {"Project Name":"com.foodforcharity.usecase", "Number of Highly Problematic Classes":0, "Number of Entities":120, "Number of Problematic Classes":8, "Class Lines of Code":1985, "Number of External Packages":43, "Number of Packages":39, "Number of External Entities":182}

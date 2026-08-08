@@ -10,7 +10,7 @@ public class AbstractController {
 
     private final Mediator mediator;
 
-    AbstractController(Mediator mediator) {
+    protected AbstractController(Mediator mediator) {
         this.mediator = mediator;
     }
 
@@ -26,7 +26,7 @@ public class AbstractController {
         return getPersonDetails().getPersonId();
     }
 
-    final String getPersonRole() {
+    protected final String getPersonRole() {
         return getPersonDetails().getRole();
     }
 
