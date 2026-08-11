@@ -47,10 +47,16 @@ public class DoneeDto {
 
     public DoneeDto(Donee donee) {
         this.id = donee.getId();
-        this.addressDescription = donee.getAddressDescription();
-        this.city = donee.getCity();
-        this.country = donee.getCountry();
-        this.city = donee.getCity();
+        this.name = donee.getDoneeName(); // Adicionado para corrigir o bug de não mapeamento
+        
+        // --- CORREÇÃO DO ENDEREÇO AQUI ---
+        if (donee.getAddress() != null) {
+            this.addressDescription = donee.getAddress().getAddressDescription();
+            this.city = donee.getAddress().getCity();
+            this.country = donee.getAddress().getCountry();
+        }
+        // ---------------------------------
+        
         this.email = donee.getEmail();
         this.memberCount = donee.getMemberCount();
         this.quantityRequested = donee.getQuantityRequested();
@@ -58,6 +64,4 @@ public class DoneeDto {
         this.type = donee.getDoneeType();
         this.phoneNumber = donee.getPhoneNumber();
     }
-
-
 }

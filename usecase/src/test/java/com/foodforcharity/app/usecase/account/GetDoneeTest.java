@@ -6,6 +6,7 @@ import com.foodforcharity.app.domain.constant.Error;
 import com.foodforcharity.app.domain.entity.Donee;
 import com.foodforcharity.app.domain.response.Response;
 import com.foodforcharity.app.domain.service.DoneeService;
+import com.foodforcharity.app.domain.valueobject.Address; // <-- NOVO IMPORT
 import com.foodforcharity.app.infrastructure.repository.DoneeRepository;
 import com.foodforcharity.app.mediator.CommandHandler;
 import com.foodforcharity.app.usecase.account.getdonee.GetDoneeCommand;
@@ -32,9 +33,15 @@ public class GetDoneeTest {
     @Before
     public void init(){
         donee = new Donee();
-        donee.setAddressDescription("DoneeAddressDescription");
-        donee.setCity("DoneeCity");
-        donee.setCountry("DoneeCountry");
+        
+        // --- CORREÇÃO DO ENDEREÇO AQUI ---
+        Address doneeAddress = new Address();
+        doneeAddress.setAddressDescription("DoneeAddressDescription");
+        doneeAddress.setCity("DoneeCity");
+        doneeAddress.setCountry("DoneeCountry");
+        donee.setAddress(doneeAddress);
+        // ---------------------------------
+        
         donee.setDoneeName("DoneeName");
         donee.setDoneeStatus(DoneeStatus.Active);
         donee.setEmail("doneeemail@gmail.com");
@@ -61,8 +68,6 @@ public class GetDoneeTest {
         assert(response.success() && response.getResponse() != null);
     }
     
-
-
     @Test
     public void DoneeDoesNotExistTest(){
         GetDoneeCommand command = new GetDoneeCommand(100);

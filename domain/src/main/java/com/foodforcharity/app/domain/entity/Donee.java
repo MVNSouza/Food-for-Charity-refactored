@@ -1,6 +1,8 @@
 package com.foodforcharity.app.domain.entity;
 
 import com.foodforcharity.app.domain.constant.*;
+import com.foodforcharity.app.domain.valueobject.Address;
+import com.foodforcharity.app.domain.valueobject.DietaryPreferences;
 import lombok.Data;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -9,28 +11,14 @@ import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import java.util.*;
-import com.foodforcharity.app.domain.constant.DoneeStatus;
-import com.foodforcharity.app.domain.constant.DoneeType;
 
-/**
- * The persistent class for the DONEE database table.
- */
 @Data
 @Entity
 @DiscriminatorValue("Donee")
 public class Donee extends Person {
     private static final long serialVersionUID = 1L;
 
-    @Column(name = "ADDRESS_DESCRIPTION")
-    @NotNull
-    private String addressDescription;
-
-    @NotNull
-    private String city;
-
-    @NotNull
-    private String country;
-
+    // --- Dados de Contato e Identificação ---
     @Column(name = "DONEE_NAME")
     @NotNull
     private String doneeName;
@@ -40,13 +28,17 @@ public class Donee extends Person {
     @Column(unique = true)
     private String email;
 
-    @Column(name = "MEMBER_COUNT")
-    @NotNull
-    private Integer memberCount;
-
     @Column(name = "PHONE_NUMBER")
     @NotNull
     private String phoneNumber;
+
+    @Embedded
+    private Address address;
+
+    // --- Dados de Regra de Negócio (Doação) ---
+    @Column(name = "MEMBER_COUNT")
+    @NotNull
+    private Integer memberCount;
 
     @Column(name = "QUANTITY_REQUESTED")
     @NotNull
@@ -62,43 +54,32 @@ public class Donee extends Person {
     @NotNull
     private DoneeType doneeType;
 
-    // bi-directional many-to-one association to DoneePriceRange
+    // --- Preferências Mapeadas do JPA ---
     @OneToOne(mappedBy = "donee", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private DoneePriceRange priceRange;
 
-    // bi-directional many-to-one association to DoneeSpiceRange
     @OneToOne(mappedBy = "donee", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private DoneeSpiceRange spiceRange;
 
-    @Enumerated(EnumType.STRING)
-    @ElementCollection(targetClass = Allergen.class, fetch = FetchType.EAGER)
-    private Set<Allergen> allergens;
+    // REFATORAÇÃO: Novo Objeto de Valor contendo as listas alimentares!
+    @Embedded
+    private DietaryPreferences dietaryPreferences = new DietaryPreferences();
 
-    @Enumerated(EnumType.STRING)
-    @ElementCollection(targetClass = Cuisine.class, fetch = FetchType.EAGER)
-    private Set<Cuisine> cuisines;
-
-    // bi-directional many-to-one association to MapDoneeMealType
-    @Enumerated(EnumType.STRING)
-    @ElementCollection(targetClass = MealType.class, fetch = FetchType.EAGER)
-    private Set<MealType> mealTypes;
-
-    // bi-directional many-to-one association to Request
+    // --- Relacionamentos ---
     @OneToMany(mappedBy = "donee", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(value = FetchMode.SUBSELECT)
-    private List<Request> requests;
+    private List<Request> requests = new ArrayList<>();
 
-    public Donee(){
-        allergens = new HashSet<Allergen>();
-        cuisines = new HashSet<Cuisine>();
-        mealTypes = new HashSet<MealType>();
-        requests = new ArrayList<Request>();
+    public Donee() {
     }
+
+    // --------------------------------------------------------
+    // Métodos de Gerenciamento de Relacionamentos
+    // --------------------------------------------------------
 
     public Request addRequest(Request request) {
         getRequests().add(request);
         request.setDonee(this);
-
         return request;
     }
 
@@ -106,70 +87,8 @@ public class Donee extends Person {
         getRequests().remove(request);
     }
 
-
     public Optional<String> getStatus() {
         return Optional.of(doneeStatus.name());
-    }
-
-    /**
-     * @param allergen
-     * @return
-     * @see java.util.Set#add(java.lang.Object)
-     */
-
-    public boolean addAllergen(Allergen allergen) {
-        return allergens.add(allergen);
-    }
-
-    /**
-     * @param allergen
-     * @return
-     * @see java.util.Set#remove(java.lang.Object)
-     */
-
-    public boolean removeAllergen(Allergen allergen) {
-        return allergens.remove(allergen);
-    }
-
-    /**
-     * @param cuisine
-     * @return
-     * @see java.util.Set#add(java.lang.Object)
-     */
-
-    public boolean addCuisine(Cuisine cuisine) {
-        return cuisines.add(cuisine);
-    }
-
-
-   /**
-     * @param mealType
-     * @return
-     * @see java.util.Set#remove(java.lang.Object)
-     */
-    public boolean removeCuisine(MealType mealType) {
-        return mealTypes.remove(mealType);
-    }
-
-    /**
-     * @param mealType
-     * @return
-     * @see java.util.Set#add(java.lang.Object)
-     */
-
-    public boolean addMealType(MealType mealType) {
-        return mealTypes.add(mealType);
-    }
-
-
-    /**
-     * @param mealType
-     * @return
-     * @see java.util.Set#remove(java.lang.Object)
-     */
-
-    public boolean removeCuisine(MealType mealType) {
-        return mealTypes.remove(mealType);
     }
 
     public void setSpiceRange(DoneeSpiceRange spiceRange){
@@ -182,24 +101,23 @@ public class Donee extends Person {
         priceRange.setDonee(this);
     }
 
-    
+    // --------------------------------------------------------
+    // Métodos de Regra de Negócio (Tell, Don't Ask)
+    // --------------------------------------------------------
+
     public boolean isEligibleForRequests() {
         return this.doneeStatus == DoneeStatus.Active;
     }
 
     public boolean canRequestMore(int additionalMealsRequested) {
-        // Se for um indivíduo, não pode pedir mais do que o número de membros
         if (this.doneeType.equals(DoneeType.Individual)) {
             return (this.getQuantityRequested() + additionalMealsRequested) <= this.getMemberCount();
         }
-        // Se for organização, etc., assumimos que não tem limite restrito
         return true; 
     }
 
     public void incrementQuantityRequested(int additionalMealsRequested) {
-        // Inicializa com 0 caso seja null para evitar NullPointerException
         int currentQuantity = this.getQuantityRequested() != null ? this.getQuantityRequested() : 0;
         this.setQuantityRequested(currentQuantity + additionalMealsRequested);
     }
-
 }

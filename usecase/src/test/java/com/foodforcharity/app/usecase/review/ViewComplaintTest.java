@@ -4,6 +4,7 @@ import com.foodforcharity.app.domain.constant.*;
 import com.foodforcharity.app.domain.entity.*;
 import com.foodforcharity.app.domain.response.Response;
 import com.foodforcharity.app.domain.service.*;
+import com.foodforcharity.app.domain.valueobject.Address; // <-- NOVO IMPORT DO ENDEREÇO
 import com.foodforcharity.app.mediator.CommandHandler;
 import com.foodforcharity.app.usecase.reviews.viewcomplaint.ViewComplaintCommand;
 import org.junit.Before;
@@ -124,9 +125,15 @@ public class ViewComplaintTest {
                 } else {
 
                     donee = new Donee();
-                    donee.setAddressDescription("DoneeAddressDescription");
-                    donee.setCity("DoneeCity");
-                    donee.setCountry("DoneeCountry");
+                    
+                    // --- CORREÇÃO DO ENDEREÇO AQUI ---
+                    Address doneeAddress = new Address();
+                    doneeAddress.setAddressDescription("DoneeAddressDescription");
+                    doneeAddress.setCity("DoneeCity");
+                    doneeAddress.setCountry("DoneeCountry");
+                    donee.setAddress(doneeAddress);
+                    // ---------------------------------
+                    
                     donee.setDoneeName("DoneeName");
                     donee.setDoneeStatus(DoneeStatus.Active);
                     donee.setEmail("doneeemail@gmail.com");

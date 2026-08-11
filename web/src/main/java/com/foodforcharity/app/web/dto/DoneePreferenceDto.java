@@ -26,11 +26,21 @@ public class DoneePreferenceDto {
     private Set<MealType> mealTypes;
 
     public DoneePreferenceDto(Donee donee) {
-        this.allergens = donee.getAllergens();
-        this.cuisines = donee.getCuisines();
-        this.mealTypes = donee.getMealTypes();
-        this.priceRange = new PriceRange(donee.getPriceRange());
-        this.spiceRange = new SpiceRange(donee.getSpiceRange());
+        // --- CORREÇÃO DAS PREFERÊNCIAS AQUI ---
+        if (donee.getDietaryPreferences() != null) {
+            this.allergens = donee.getDietaryPreferences().getAllergens();
+            this.cuisines = donee.getDietaryPreferences().getCuisines();
+            this.mealTypes = donee.getDietaryPreferences().getMealTypes();
+        }
+        // --------------------------------------
+        
+        if (donee.getPriceRange() != null) {
+            this.priceRange = new PriceRange(donee.getPriceRange());
+        }
+        
+        if (donee.getSpiceRange() != null) {
+            this.spiceRange = new SpiceRange(donee.getSpiceRange());
+        }
     }
 
     @Data

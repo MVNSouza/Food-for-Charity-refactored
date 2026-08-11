@@ -13,6 +13,7 @@ import com.foodforcharity.app.domain.constant.SpiceLevel;
 import com.foodforcharity.app.domain.entity.Donee;
 import com.foodforcharity.app.domain.entity.DoneePriceRange;
 import com.foodforcharity.app.domain.response.Response;
+import com.foodforcharity.app.domain.valueobject.Address; // <-- NOVO IMPORT
 import com.foodforcharity.app.infrastructure.repository.DoneeRepository;
 import com.foodforcharity.app.mediator.CommandHandler;
 import com.foodforcharity.app.usecase.profile.selectpreferences.SelectPreferencesCommand;
@@ -26,8 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
- @RunWith(SpringRunner.class)
- @SpringBootTest
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public class SelectPreferenceTest {
 
     @Autowired
@@ -42,9 +43,15 @@ public class SelectPreferenceTest {
     public void init() {
 
         donee = new Donee();
-        donee.setAddressDescription("DoneeAddressDescription");
-        donee.setCity("DoneeCity");
-        donee.setCountry("DoneeCountry");
+        
+        // --- CORREÇÃO DO ENDEREÇO AQUI ---
+        Address doneeAddress = new Address();
+        doneeAddress.setAddressDescription("DoneeAddressDescription");
+        doneeAddress.setCity("DoneeCity");
+        doneeAddress.setCountry("DoneeCountry");
+        donee.setAddress(doneeAddress);
+        // ---------------------------------
+        
         donee.setDoneeName("DoneeName");
         donee.setDoneeStatus(DoneeStatus.Active);
         donee.setEmail("doneeemail@gmail.com");
@@ -54,7 +61,7 @@ public class SelectPreferenceTest {
         donee.setMemberCount(5);
         donee.setQuantityRequested(0);
         donee.setUsername(donee.getEmail());
-        donee.setPriceRange(new DoneePriceRange());;
+        donee.setPriceRange(new DoneePriceRange());
         donee.getPriceRange().setStartPrice(0);
         donee.getPriceRange().setEndPrice(10);
         donee = doneeRepos.save(donee);
@@ -65,7 +72,7 @@ public class SelectPreferenceTest {
         doneeRepos.deleteById(donee.getId());
     }
 
-     @Test
+    @Test
     public void SuccessTest() {
 
         SelectPreferencesCommand command = new SelectPreferencesCommand();
@@ -93,7 +100,6 @@ public class SelectPreferenceTest {
         assert (response.success());
     }
 
-
     @Test
     public void DoneeDoesNotExistTest(){
         SelectPreferencesCommand command = new SelectPreferencesCommand();
@@ -119,7 +125,6 @@ public class SelectPreferenceTest {
 
         Response<Void> response = handler.handle(command);
         assert (response.getError()==Error.DoneeDoesNotExist);
-
     }
 
     @Test
@@ -152,14 +157,10 @@ public class SelectPreferenceTest {
         Response<Void> response2 = handler.handle(command);
 
         assert (response1.getError()==Error.InvalidPriceRange && response2.getError()==Error.InvalidPriceRange );
-
     }
-
 
     @Test
     public void InvalidSpiceRangeTest(){
-
-
         SelectPreferencesCommand command = new SelectPreferencesCommand();
 
         Range<SpiceLevel> spiceRange = command.new Range<SpiceLevel>( SpiceLevel.ExtraHot, SpiceLevel.NoSpice);
@@ -184,6 +185,5 @@ public class SelectPreferenceTest {
         Response<Void> response = handler.handle(command);
 
         assert (response.getError()==Error.InvalidSpiceRange );
-
     }
 }

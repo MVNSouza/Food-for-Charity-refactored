@@ -5,6 +5,8 @@ import com.foodforcharity.app.domain.entity.*;
 import com.foodforcharity.app.domain.service.DoneeService;
 import com.foodforcharity.app.domain.service.DonorService;
 import com.foodforcharity.app.infrastructure.repository.*;
+// IMPORT NOVO AQUI:
+import com.foodforcharity.app.domain.valueobject.Address; 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,10 +72,15 @@ public class RepositoryTest {
         donor.addFood(food);
         donor = donorRepos.save(donor);
 
+        // --- CORREÇÃO AQUI ---
         Donee donee = new Donee();
-        donee.setAddressDescription("DoneeAddressDescription");
-        donee.setCity("DoneeCity");
-        donee.setCountry("DoneeCountry");
+        
+        Address doneeAddress = new Address();
+        doneeAddress.setAddressDescription("DoneeAddressDescription");
+        doneeAddress.setCity("DoneeCity");
+        doneeAddress.setCountry("DoneeCountry");
+        donee.setAddress(doneeAddress); // Atribuindo o objeto endereço ao Donee
+        
         donee.setDoneeName("DoneeName");
         donee.setDoneeStatus(DoneeStatus.Active);
         donee.setEmail("doneeemail@gmail.com");
@@ -117,10 +124,15 @@ public class RepositoryTest {
 
     @Test
     public void selectPreference(){
+        // --- CORREÇÃO AQUI TAMBÉM ---
         Donee donee = new Donee();
-        donee.setAddressDescription("DoneeAddressDescription");
-        donee.setCity("DoneeCity");
-        donee.setCountry("DoneeCountry");
+        
+        Address doneeAddress = new Address();
+        doneeAddress.setAddressDescription("DoneeAddressDescription");
+        doneeAddress.setCity("DoneeCity");
+        doneeAddress.setCountry("DoneeCountry");
+        donee.setAddress(doneeAddress); // Atribuindo o objeto endereço ao Donee
+
         donee.setDoneeName("DoneeName");
         donee.setDoneeStatus(DoneeStatus.Active);
         donee.setEmail("doneeemail@gmail.com");

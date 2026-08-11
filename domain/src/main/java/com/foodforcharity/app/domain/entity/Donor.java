@@ -1,6 +1,7 @@
 package com.foodforcharity.app.domain.entity;
 
 import com.foodforcharity.app.domain.constant.DonorStatus;
+
 import lombok.Data;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;

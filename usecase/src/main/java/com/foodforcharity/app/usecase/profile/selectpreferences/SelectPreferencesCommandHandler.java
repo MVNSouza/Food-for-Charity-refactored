@@ -28,9 +28,6 @@ public class SelectPreferencesCommandHandler implements CommandHandler<SelectPre
     @Override
     public Response<Void> handle(SelectPreferencesCommand command) {
         try {
-
-
-            
             // 1 check that donee exists
             // 1- check if donee exists and has an active status
             Optional<Donee> dbDonee = doneeService.findById(command.getDoneeId());
@@ -38,16 +35,15 @@ public class SelectPreferencesCommandHandler implements CommandHandler<SelectPre
                 return Response.of(Error.DoneeDoesNotExist);
             }
             Donee donee = dbDonee.get();
-            // 2- reset previouses preferences
-           
-                donee.getAllergens().clear();
-        
-                donee.getCuisines().clear();
             
-                donee.getMealTypes().clear();
+            // 2- reset previouses preferences (REFATORADO PARA USAR O NOVO OBJETO)
+            if (donee.getDietaryPreferences() != null) {
+                donee.getDietaryPreferences().getAllergens().clear();
+                donee.getDietaryPreferences().getCuisines().clear();
+                donee.getDietaryPreferences().getMealTypes().clear();
+            }
 
             // 3-price ranges start is always greater than 0 and less than stop
-       
             if (command.getPriceRange().getStart() < 0 || command.getPriceRange().getStop() < command.getPriceRange().getStart()) {
                 return Response.of(Error.InvalidPriceRange);
             }
@@ -55,7 +51,7 @@ public class SelectPreferencesCommandHandler implements CommandHandler<SelectPre
             if(donee.getPriceRange() == null){
                 donee.setPriceRange(new DoneePriceRange());
             }
-               
+                
             donee.getPriceRange().setStartPrice(command.getPriceRange().getStart());
             donee.getPriceRange().setEndPrice(command.getPriceRange().getStop());
             
@@ -65,23 +61,20 @@ public class SelectPreferencesCommandHandler implements CommandHandler<SelectPre
                 return Response.of(Error.InvalidSpiceRange);
             } 
 
-
             if(donee.getSpiceRange()==null){
                 donee.setSpiceRange(new DoneeSpiceRange());
             }
-                donee.getSpiceRange().setStartLevel(command.getSpiceRange().getStart());
-                donee.getSpiceRange().setEndLevel(command.getSpiceRange().getStop());
+            donee.getSpiceRange().setStartLevel(command.getSpiceRange().getStart());
+            donee.getSpiceRange().setEndLevel(command.getSpiceRange().getStop());
 
-            
+            // 5- add cuisine (REFATORADO)
+            command.getCuisines().stream().forEach(c -> donee.getDietaryPreferences().addCuisine(c));
 
-            // 5- add cuisine
-            command.getCuisines().stream().forEach(c -> donee.addCuisine(c));
+            // 6-add allergen (REFATORADO)
+            command.getAllergens().stream().forEach(a -> donee.getDietaryPreferences().addAllergen(a));
 
-            // 6-add mealtype
-            command.getAllergens().stream().forEach(a -> donee.addAllergen(a));
-
-            // 7- add mealtypes
-            command.getMealTypes().stream().forEach(m -> donee.addMealType(m));
+            // 7- add mealtypes (REFATORADO)
+            command.getMealTypes().stream().forEach(m -> donee.getDietaryPreferences().addMealType(m));
 
             // 8-save donee
             doneeService.save(donee);

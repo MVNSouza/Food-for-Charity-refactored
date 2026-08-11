@@ -6,7 +6,10 @@ import com.foodforcharity.app.domain.entity.Donee;
 import com.foodforcharity.app.domain.response.Response;
 import com.foodforcharity.app.domain.service.DoneeService;
 import com.foodforcharity.app.domain.service.PersonService;
+import com.foodforcharity.app.domain.valueobject.Address; // <-- NOVO IMPORT
 import com.foodforcharity.app.mediator.CommandHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +18,9 @@ import org.springframework.stereotype.Service;
  **/
 @Service
 public class DoneeRegisterationCommandHandler implements CommandHandler<DoneeRegisterationCommand, Response<Void>> {
+    
+    private static final Logger log = LoggerFactory.getLogger(DoneeRegisterationCommandHandler.class);
+    
     private final PersonService personService;
     private final DoneeService doneeService;
 
@@ -52,11 +58,16 @@ public class DoneeRegisterationCommandHandler implements CommandHandler<DoneeReg
             donee.setPassword(command.getPassword()); // for now
 
             donee.setDoneeName(command.getName());
-            donee.setAddressDescription(command.getAddress());
-            donee.setCity(command.getCity());
             donee.setEmail(command.getEmail());
-            donee.setCountry(command.getCountry());
             donee.setPhoneNumber(command.getPhoneNumber());
+
+            // --- CORREÇÃO DO ENDEREÇO AQUI ---
+            Address address = new Address();
+            address.setAddressDescription(command.getAddress());
+            address.setCity(command.getCity());
+            address.setCountry(command.getCountry());
+            donee.setAddress(address);
+            // ---------------------------------
 
             donee.setDoneeStatus(DoneeStatus.Initial);
             donee.setQuantityRequested(0); // is this required over here??
@@ -66,6 +77,7 @@ public class DoneeRegisterationCommandHandler implements CommandHandler<DoneeReg
             doneeService.save(donee);
 
         } catch (Exception e) {
+            log.error("Erro inesperado ao registrar novo Donee.", e);
             return Response.of(Error.UnknownError);
         }
 
@@ -76,16 +88,4 @@ public class DoneeRegisterationCommandHandler implements CommandHandler<DoneeReg
         String regex = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
         return email.matches(regex);
     }
-
 }
-
-/**
- * Optional<Person> dbPerson = personService.findById(command.personId);
- * step1: valid and check if email is unique step 2 : check personrole ->donee
- * /donor->there is no register as broker option so no exception if donee: check
- * if member count is valid create a donee with all fileds+ donee status=initial
- * and qty requested =0
- * <p>
- * save donee to repositry else if donor: create a donor with all fileds+ donor
- * status=initial save donor to rep save person to rep
- */

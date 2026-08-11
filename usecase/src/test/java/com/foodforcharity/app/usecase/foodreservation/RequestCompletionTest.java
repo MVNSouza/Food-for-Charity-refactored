@@ -5,6 +5,7 @@ import com.foodforcharity.app.domain.constant.Error;
 import com.foodforcharity.app.domain.entity.*;
 import com.foodforcharity.app.domain.response.Response;
 import com.foodforcharity.app.domain.service.DonorService;
+import com.foodforcharity.app.domain.valueobject.Address; // <-- NOVO IMPORT
 import com.foodforcharity.app.infrastructure.repository.DoneeRepository;
 import com.foodforcharity.app.infrastructure.repository.DonorRepository;
 import com.foodforcharity.app.infrastructure.repository.FoodRepository;
@@ -51,34 +52,34 @@ public class RequestCompletionTest {
     public void init() {
 
         donor = new Donor();
-       donor2= new Donor();
+        donor2= new Donor();
     
         donor.setAddressDescription("DonorAddressDescription");
-       donor2.setAddressDescription("Donor2AddressDescription");
+        donor2.setAddressDescription("Donor2AddressDescription");
 
         donor.setCity("DonorCity");
-       donor2.setCity("Donor2City");
+        donor2.setCity("Donor2City");
 
         donor.setCountry("DonorCountry");
-       donor2.setCountry("Donor2Country");
+        donor2.setCountry("Donor2Country");
 
         donor.setDonorName("DonorName");
-       donor2.setDonorName("donor2Name");
+        donor2.setDonorName("donor2Name");
 
         donor.setEmail("donoremail@gmail.com");
-       donor2.setEmail("donor2email@gmail.com");
+        donor2.setEmail("donor2email@gmail.com");
 
         donor.setNumberOfRating(0);
-       donor2.setNumberOfRating(0);
+        donor2.setNumberOfRating(0);
 
         donor.setPassword("DonorPassword");
-       donor2.setPassword("Donor2Password");
+        donor2.setPassword("Donor2Password");
 
         donor.setPhoneNumber("DonorPhoneNumber");
         donor2.setPhoneNumber("Donor2PhoneNumber");
 
         donor.setRating(0);
-       donor2.setRating(0);
+        donor2.setRating(0);
 
         donor.setDiscountApplied(10);
         donor2.setDiscountApplied(10);
@@ -118,12 +119,18 @@ public class RequestCompletionTest {
 
 
         donor = donorRepos.save(donor);
-       donor2 = donorRepos.save(donor2);
+        donor2 = donorRepos.save(donor2);
 
         donee = new Donee();
-        donee.setAddressDescription("DoneeAddressDescription");
-        donee.setCity("DoneeCity");
-        donee.setCountry("DoneeCountry");
+        
+        // --- CORREÇÃO DO ENDEREÇO AQUI ---
+        Address doneeAddress = new Address();
+        doneeAddress.setAddressDescription("DoneeAddressDescription");
+        doneeAddress.setCity("DoneeCity");
+        doneeAddress.setCountry("DoneeCountry");
+        donee.setAddress(doneeAddress);
+        // ---------------------------------
+        
         donee.setDoneeName("DoneeName");
         donee.setDoneeStatus(DoneeStatus.Active);
         donee.setEmail("doneeemail@gmail.com");
@@ -134,6 +141,7 @@ public class RequestCompletionTest {
         donee.setQuantityRequested(0);
         donee.setUsername(donee.getEmail());
         donee = doneeRepos.save(donee);
+        
         // create a new request = request id is auto generated
         // setting manually because need a request id
         SubRequest subR = new SubRequest();
@@ -165,7 +173,7 @@ public class RequestCompletionTest {
         if (donor.getRequests() != null)
             requestRepos.deleteAll(donor.getRequests());
         if (donor2.getRequests() != null)
-            requestRepos.deleteAll(donor.getRequests());
+            requestRepos.deleteAll(donor.getRequests()); // Mantive igual ao seu original, verifique se não era donor2.getRequests()
         foodRepos.deleteById(food.getId());
         foodRepos.deleteById(food2.getId());
         donorRepos.deleteById(donor.getId());
@@ -220,9 +228,5 @@ public class RequestCompletionTest {
        
 
     }
-
-
-
-
 
 }

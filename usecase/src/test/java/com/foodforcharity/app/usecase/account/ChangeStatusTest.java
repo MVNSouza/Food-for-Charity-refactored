@@ -7,6 +7,7 @@ import com.foodforcharity.app.domain.constant.Error;
 import com.foodforcharity.app.domain.entity.Donee;
 import com.foodforcharity.app.domain.entity.Donor;
 import com.foodforcharity.app.domain.response.Response;
+import com.foodforcharity.app.domain.valueobject.Address; // <-- NOVO IMPORT
 import com.foodforcharity.app.infrastructure.repository.DoneeRepository;
 import com.foodforcharity.app.infrastructure.repository.DonorRepository;
 import com.foodforcharity.app.infrastructure.repository.PersonRepository;
@@ -60,9 +61,15 @@ public class ChangeStatusTest {
         donorRepos.save(donor);
 
         donee = new Donee();
-        donee.setAddressDescription("DoneeAddressDescription");
-        donee.setCity("DoneeCity");
-        donee.setCountry("DoneeCountry");
+        
+        // --- CORREÇÃO DO ENDEREÇO AQUI ---
+        Address doneeAddress = new Address();
+        doneeAddress.setAddressDescription("DoneeAddressDescription");
+        doneeAddress.setCity("DoneeCity");
+        doneeAddress.setCountry("DoneeCountry");
+        donee.setAddress(doneeAddress);
+        // ---------------------------------
+        
         donee.setDoneeName("DoneeName");
         donee.setDoneeStatus(DoneeStatus.Active);
         donee.setEmail("doneeemail@gmail.com");
@@ -76,14 +83,12 @@ public class ChangeStatusTest {
 
     }
 
-
     @After
-public void Destroy(){
-
-    doneeRepos.deleteById(donee.getId());
-    donorRepos.deleteById(donor.getId());
-
-}
+    public void Destroy(){
+        doneeRepos.deleteById(donee.getId());
+        donorRepos.deleteById(donor.getId());
+    }
+    
     @Test
     public void successTest() {
         ChangeStatusCommand donorCommand = new ChangeStatusCommand(donor.getId(), DonorStatus.Active);

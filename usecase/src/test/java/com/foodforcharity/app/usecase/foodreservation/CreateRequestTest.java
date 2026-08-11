@@ -7,6 +7,7 @@ import com.foodforcharity.app.domain.entity.Donor;
 import com.foodforcharity.app.domain.entity.Food;
 import com.foodforcharity.app.domain.response.Response;
 import com.foodforcharity.app.domain.service.DonorService;
+import com.foodforcharity.app.domain.valueobject.Address; // <-- NOVO IMPORT DO ENDEREÇO
 import com.foodforcharity.app.infrastructure.repository.DoneeRepository;
 import com.foodforcharity.app.infrastructure.repository.DonorRepository;
 import com.foodforcharity.app.infrastructure.repository.FoodRepository;
@@ -79,9 +80,15 @@ public class CreateRequestTest {
         donor = donorRepos.save(donor);
 
         donee = new Donee();
-        donee.setAddressDescription("DoneeAddressDescription");
-        donee.setCity("DoneeCity");
-        donee.setCountry("DoneeCountry");
+        
+        // --- CORREÇÃO DO ENDEREÇO AQUI ---
+        Address doneeAddress = new Address();
+        doneeAddress.setAddressDescription("DoneeAddressDescription");
+        doneeAddress.setCity("DoneeCity");
+        doneeAddress.setCountry("DoneeCountry");
+        donee.setAddress(doneeAddress);
+        // ---------------------------------
+        
         donee.setDoneeName("DoneeName");
         donee.setDoneeStatus(DoneeStatus.Active);
         donee.setEmail("doneeemail@gmail.com");
@@ -136,7 +143,7 @@ public class CreateRequestTest {
         DonorStatus donorStatusToRemember = donor.getDonorStatus(); // save it for later
 
         donor.setDonorStatus(DonorStatus.Initial);
-      donor= donorRepos.save(donor);
+        donor= donorRepos.save(donor);
 
         CreateRequestCommand command = new CreateRequestCommand(donee.getId(), donor.getId());
         command.addFood(food.getId(), 1);
@@ -204,7 +211,7 @@ public class CreateRequestTest {
 
         donee.setDoneeType(DoneeType.Individual);
         donee.setQuantityRequested(donee.getMemberCount());
-       donee= doneeRepos.save(donee);
+        donee= doneeRepos.save(donee);
 
         Integer quantityToRequest = 1;
         CreateRequestCommand command1 = new CreateRequestCommand(donee.getId(), donor.getId());
@@ -229,6 +236,4 @@ public class CreateRequestTest {
                 && response2.getError() == Error.QuanityAllowanceExceeded);
     }
 
-
-    // while loop test
 }
