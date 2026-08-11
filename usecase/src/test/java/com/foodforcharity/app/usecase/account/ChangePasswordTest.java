@@ -4,6 +4,7 @@ import com.foodforcharity.app.domain.constant.DonorStatus;
 import com.foodforcharity.app.domain.constant.Error;
 import com.foodforcharity.app.domain.entity.Donor;
 import com.foodforcharity.app.domain.response.Response;
+import com.foodforcharity.app.domain.valueobject.Address; // --- IMPORT NOVO AQUI ---
 import com.foodforcharity.app.infrastructure.repository.DonorRepository;
 import com.foodforcharity.app.mediator.CommandHandler;
 import com.foodforcharity.app.usecase.account.changepassword.ChangePasswordCommand;
@@ -32,9 +33,15 @@ public class ChangePasswordTest {
     public void init() {
 
         donor = new Donor();
-        donor.setAddressDescription("DonorAddressDescription");
-        donor.setCity("DonorCity");
-        donor.setCountry("DonorCountry");
+        
+        // --- CORREÇÃO: Usando a nova classe Address ---
+        Address address = new Address();
+        address.setAddressDescription("DonorAddressDescription");
+        address.setCity("DonorCity");
+        address.setCountry("DonorCountry");
+        donor.setAddress(address); 
+        // ----------------------------------------------
+        
         donor.setDonorName("DonorName");
         donor.setDonorStatus(DonorStatus.Initial);
         donor.setEmail("donoremail@gmail.com");
@@ -51,10 +58,7 @@ public class ChangePasswordTest {
 
     @After
     public void Destroy(){
-    
-        
         repos.deleteById(donor.getId());
-    
     }
 
     @Test

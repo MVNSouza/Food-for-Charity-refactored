@@ -2,10 +2,7 @@ package com.foodforcharity.app.infrastructure;
 
 import com.foodforcharity.app.domain.constant.*;
 import com.foodforcharity.app.domain.entity.*;
-import com.foodforcharity.app.domain.service.DoneeService;
-import com.foodforcharity.app.domain.service.DonorService;
 import com.foodforcharity.app.infrastructure.repository.*;
-// IMPORT NOVO AQUI:
 import com.foodforcharity.app.domain.valueobject.Address; 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,9 +42,15 @@ public class RepositoryTest {
     public void success() {
 
         Donor donor = new Donor();
-        donor.setAddressDescription("DonorAddressDescription");
-        donor.setCity("DonorCity");
-        donor.setCountry("DonorCountry");
+        
+        // --- CORREÇÃO DO DONOR AQUI ---
+        Address donorAddress = new Address();
+        donorAddress.setAddressDescription("DonorAddressDescription");
+        donorAddress.setCity("DonorCity");
+        donorAddress.setCountry("DonorCountry");
+        donor.setAddress(donorAddress); 
+        // ------------------------------
+        
         donor.setDonorName("DonorName");
         donor.setEmail("donoremail@gmail.com");
         donor.setNumberOfRating(0);
@@ -79,7 +82,7 @@ public class RepositoryTest {
         doneeAddress.setAddressDescription("DoneeAddressDescription");
         doneeAddress.setCity("DoneeCity");
         doneeAddress.setCountry("DoneeCountry");
-        donee.setAddress(doneeAddress); // Atribuindo o objeto endereço ao Donee
+        donee.setAddress(doneeAddress); 
         
         donee.setDoneeName("DoneeName");
         donee.setDoneeStatus(DoneeStatus.Active);
@@ -108,18 +111,17 @@ public class RepositoryTest {
         request.setIsRated(false);
         request = requestRepos.save(request);
 
-        donor = ((DonorService) donorRepos).findById(donor.getId()).get();
+        // --- CORREÇÃO DO CAST E DA DELEÇÃO DO PEDIDO ---
+        donor = donorRepos.findById(donor.getId()).get();
 
-        requestRepos.deleteAll(donor.getRequests());
+        // Apagamos o pedido criado diretamente pelo repositório
+        requestRepos.deleteById(request.getId());
 
         foodRepos.deleteById(food.getId());
-
-
         donorRepos.deleteById(donor.getId());
-//
-        donee = ((DoneeService) doneeRepos).findById(donee.getId()).get();
-        doneeRepos.delete(donee);
 
+        donee = doneeRepos.findById(donee.getId()).get();
+        doneeRepos.delete(donee);
     }
 
     @Test
@@ -131,7 +133,7 @@ public class RepositoryTest {
         doneeAddress.setAddressDescription("DoneeAddressDescription");
         doneeAddress.setCity("DoneeCity");
         doneeAddress.setCountry("DoneeCountry");
-        donee.setAddress(doneeAddress); // Atribuindo o objeto endereço ao Donee
+        donee.setAddress(doneeAddress); 
 
         donee.setDoneeName("DoneeName");
         donee.setDoneeStatus(DoneeStatus.Active);
@@ -144,11 +146,10 @@ public class RepositoryTest {
         donee.setUsername(donee.getEmail());
         donee = doneeRepos.save(donee);
 
-        donee.setPriceRange(new DoneePriceRange());;
+        donee.setPriceRange(new DoneePriceRange());
         donee.getPriceRange().setStartPrice(0);
         donee.getPriceRange().setEndPrice(10);
 
         donee = doneeRepos.save(donee);
-
     }
 }

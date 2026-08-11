@@ -33,9 +33,15 @@ public class DonorDto {
 
     public DonorDto(Donor donor) {
         this.id = donor.getId();
-        this.addressDescription = donor.getAddressDescription();
-        this.city = donor.getCity();
-        this.country = donor.getCountry();
+        
+        // --- CORREÇÃO DO MAPEAMENTO DE ENDEREÇO AQUI ---
+        if (donor.getAddress() != null) {
+            this.addressDescription = donor.getAddress().getAddressDescription();
+            this.city = donor.getAddress().getCity();
+            this.country = donor.getAddress().getCountry();
+        }
+        // -----------------------------------------------
+
         this.discountApplied = donor.getDiscountApplied();
         this.name = donor.getDonorName();
         this.donorStatus = donor.getDonorStatus();
@@ -48,6 +54,4 @@ public class DonorDto {
 
         this.rating = donor.getNumberOfRating() != 0 ? donor.getRating() / donor.getNumberOfRating() : -1;
     }
-
-
 }

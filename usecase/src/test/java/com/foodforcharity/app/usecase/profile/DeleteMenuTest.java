@@ -7,7 +7,7 @@ import com.foodforcharity.app.domain.entity.Donor;
 import com.foodforcharity.app.domain.entity.Food;
 import com.foodforcharity.app.domain.entity.Request;
 import com.foodforcharity.app.domain.response.Response;
-import com.foodforcharity.app.domain.service.DonorService;
+import com.foodforcharity.app.domain.valueobject.Address; // <-- IMPORT NOVO
 import com.foodforcharity.app.infrastructure.repository.DonorRepository;
 import com.foodforcharity.app.infrastructure.repository.FoodRepository;
 import com.foodforcharity.app.infrastructure.repository.RequestRepository;
@@ -54,36 +54,23 @@ public class DeleteMenuTest {
 
         donor = new Donor();
         
-        donor.setAddressDescription("DonorAddressDescription");
-    
-        donor.setCity("DonorCity");
-       
-
-        donor.setCountry("DonorCountry");
-        
+        // --- CORREÇÃO DO ENDEREÇO AQUI ---
+        Address address = new Address();
+        address.setAddressDescription("DonorAddressDescription");
+        address.setCity("DonorCity");
+        address.setCountry("DonorCountry");
+        donor.setAddress(address);
+        // ---------------------------------
 
         donor.setDonorName("DonorName");
-      
-
         donor.setEmail("donoremail@gmail.com");
-        
         donor.setNumberOfRating(0);
-        
-
         donor.setPassword("DonorPassword");
-       
         donor.setPhoneNumber("DonorPhoneNumber");
-       
         donor.setRating(0);
-        
-
         donor.setDiscountApplied(10);
-        
         donor.setUsername(donor.getEmail());
-        
-
         donor.setDonorStatus(DonorStatus.Active);
-        
 
         food = new Food();
         
@@ -97,13 +84,10 @@ public class DeleteMenuTest {
         food.setSpiceLevel(SpiceLevel.MildSpice);
         food.setAllergens(new HashSet<Allergen>(Arrays.asList(Allergen.Dairy)));
 
-       
-
         donor.addFood(food);
-       
 
         donor = donorRepos.save(donor);
-       
+        
         // donee = new Donee();
         // donee.setAddressDescription("DoneeAddressDescription");
         // donee.setCity("DoneeCity");
@@ -141,19 +125,17 @@ public class DeleteMenuTest {
 
     @After
     public void destroy() {
-        donor = ((DonorService) donorRepos).findById(donor.getId()).get();
+        // --- CORREÇÃO DO CLASS CAST EXCEPTION AQUI ---
+        donor = donorRepos.findById(donor.getId()).get();
 
         // if (donor.getRequests() != null)
         //     requestRepos.deleteAll(donor.getRequests());
 
-    //    if (donor.getFoods() != null)
+        // if (donor.getFoods() != null)
             foodRepos.deleteAll();
-        
-        
-
+            
         donorRepos.deleteById(donor.getId());
 
-    
     }
 
     @Test
@@ -178,8 +160,6 @@ public class DeleteMenuTest {
         assert (handler.handle(new DeleteMenuItemCommand(Long.valueOf(100), food.getId()))
                 .getError() == Error.FoodsDonorMismatch);
     }
-
-
 
     // @Test
     public void FoodHasActiveRequestOrComplaintsTest() {

@@ -4,7 +4,7 @@ import com.foodforcharity.app.domain.constant.*;
 import com.foodforcharity.app.domain.entity.*;
 import com.foodforcharity.app.domain.response.Response;
 import com.foodforcharity.app.domain.service.*;
-import com.foodforcharity.app.domain.valueobject.Address; // <-- NOVO IMPORT DO ENDEREÇO
+import com.foodforcharity.app.domain.valueobject.Address; // <-- IMPORT MANTIDO
 import com.foodforcharity.app.mediator.CommandHandler;
 import com.foodforcharity.app.usecase.reviews.viewcomplaint.ViewComplaintCommand;
 import org.junit.Before;
@@ -75,9 +75,15 @@ public class ViewComplaintTest {
                     Optional<Donor> dbDonor = donorRepos.findByUsername("donoremail@gmail.com");
                     if (dbDonor.isEmpty()) {
                         donor = new Donor();
-                        donor.setAddressDescription("DonorAddressDescription");
-                        donor.setCity("DonorCity");
-                        donor.setCountry("DonorCountry");
+                        
+                        // --- CORREÇÃO DO ENDEREÇO DO DONOR AQUI ---
+                        Address donorAddress = new Address();
+                        donorAddress.setAddressDescription("DonorAddressDescription");
+                        donorAddress.setCity("DonorCity");
+                        donorAddress.setCountry("DonorCountry");
+                        donor.setAddress(donorAddress);
+                        // ------------------------------------------
+                        
                         donor.setDonorName("DonorName");
                         donor.setEmail("donoremail@gmail.com");
                         donor.setNumberOfRating(0);

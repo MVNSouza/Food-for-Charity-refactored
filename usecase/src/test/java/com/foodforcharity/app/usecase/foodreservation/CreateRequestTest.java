@@ -6,8 +6,7 @@ import com.foodforcharity.app.domain.entity.Donee;
 import com.foodforcharity.app.domain.entity.Donor;
 import com.foodforcharity.app.domain.entity.Food;
 import com.foodforcharity.app.domain.response.Response;
-import com.foodforcharity.app.domain.service.DonorService;
-import com.foodforcharity.app.domain.valueobject.Address; // <-- NOVO IMPORT DO ENDEREÇO
+import com.foodforcharity.app.domain.valueobject.Address; 
 import com.foodforcharity.app.infrastructure.repository.DoneeRepository;
 import com.foodforcharity.app.infrastructure.repository.DonorRepository;
 import com.foodforcharity.app.infrastructure.repository.FoodRepository;
@@ -52,9 +51,13 @@ public class CreateRequestTest {
     public void init() {
 
         donor = new Donor();
-        donor.setAddressDescription("DonorAddressDescription");
-        donor.setCity("DonorCity");
-        donor.setCountry("DonorCountry");
+        
+        Address donorAddress = new Address();
+        donorAddress.setAddressDescription("DonorAddressDescription");
+        donorAddress.setCity("DonorCity");
+        donorAddress.setCountry("DonorCountry");
+        donor.setAddress(donorAddress);
+        
         donor.setDonorName("DonorName");
         donor.setEmail("donoremail@gmail.com");
         donor.setNumberOfRating(0);
@@ -81,13 +84,11 @@ public class CreateRequestTest {
 
         donee = new Donee();
         
-        // --- CORREÇÃO DO ENDEREÇO AQUI ---
         Address doneeAddress = new Address();
         doneeAddress.setAddressDescription("DoneeAddressDescription");
         doneeAddress.setCity("DoneeCity");
         doneeAddress.setCountry("DoneeCountry");
         donee.setAddress(doneeAddress);
-        // ---------------------------------
         
         donee.setDoneeName("DoneeName");
         donee.setDoneeStatus(DoneeStatus.Active);
@@ -103,9 +104,12 @@ public class CreateRequestTest {
 
     @After
     public void destroy() {
-        donor = ((DonorService) donorRepos).findById(donor.getId()).get();
-        if (donor.getRequests() != null)
-            requestRepos.deleteAll(donor.getRequests());
+        donor = donorRepos.findById(donor.getId()).get();
+        
+        // --- CORREÇÃO AQUI ---
+        // Apagamos os requests gerados no teste de forma direta pelo repositório
+        requestRepos.deleteAll();
+            
         foodRepos.deleteById(food.getId());
         donorRepos.deleteById(donor.getId());
         doneeRepos.deleteById(donee.getId());

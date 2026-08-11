@@ -1,7 +1,8 @@
 package com.foodforcharity.app.domain.entity;
 
 import com.foodforcharity.app.domain.convertor.BooleanCharacterConverter;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -9,14 +10,14 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 /**
  * The persistent class for the REQUEST database table.
  */
-@Data
+@Getter
+@Setter // Trocado @Data por Getter e Setter para evitar loop infinito em relacionamentos bidirecionais
 @Entity
 public class Request implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -69,7 +70,7 @@ public class Request implements Serializable {
 
     public Request(){
         complaints = new ArrayList<>();
-        subRequests = new ArrayList();
+        subRequests = new ArrayList<>();
     }
 
     public Complaint addComplaint(Complaint complaint) {
@@ -100,8 +101,12 @@ public class Request implements Serializable {
 
     @PreRemove
     public void preRemove() {
-        donor.removeRequest(this);
-        donee.removeRequest(this);
+        // donor.removeRequest(this); <-- LINHA APAGADA! O Donor não precisa mais gerenciar isso.
+        
+        // Mantemos o donee porque você ainda não refatorou a classe Donee para remover a lista de requests (como fizemos no Donor)
+        if (donee != null) {
+            donee.removeRequest(this); 
+        }
     }
 
 }

@@ -45,9 +45,15 @@ public class ChangeStatusTest {
     public void init() {
 
         donor = new Donor();
-        donor.setAddressDescription("DonorAddressDescription");
-        donor.setCity("DonorCity");
-        donor.setCountry("DonorCountry");
+        
+        // --- CORREÇÃO DO ENDEREÇO DO DONOR AQUI ---
+        Address donorAddress = new Address();
+        donorAddress.setAddressDescription("DonorAddressDescription");
+        donorAddress.setCity("DonorCity");
+        donorAddress.setCountry("DonorCountry");
+        donor.setAddress(donorAddress);
+        // ------------------------------------------
+        
         donor.setDonorName("DonorName");
         donor.setDonorStatus(DonorStatus.Active);
         donor.setEmail("donoremail@gmail.com");

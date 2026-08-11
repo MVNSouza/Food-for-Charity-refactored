@@ -7,6 +7,7 @@ import com.foodforcharity.app.domain.service.DoneeService;
 import com.foodforcharity.app.domain.service.DonorService;
 import com.foodforcharity.app.domain.service.FoodService;
 import com.foodforcharity.app.domain.service.RequestService;
+import com.foodforcharity.app.domain.service.DonationRequestService; // Import do novo serviço
 import com.foodforcharity.app.domain.valueobject.RequestedItem;
 import com.foodforcharity.app.mediator.CommandHandler;
 import com.foodforcharity.app.usecase.foodreservation.createrequest.CreateRequestCommand.FoodQuantityPair;
@@ -29,21 +30,26 @@ public class CreateRequestCommandHandler implements CommandHandler<CreateRequest
     private final DonorService donorService;
     private final DoneeService doneeService;
     private final RequestService requestService;
+    private final DonationRequestService donationRequestService; // Declaração da dependência
 
     @Autowired
-    public CreateRequestCommandHandler(FoodService foodService, DonorService donorService, 
-                                       DoneeService doneeService, RequestService requestService) {
+    public CreateRequestCommandHandler(FoodService foodService, 
+                                       DonorService donorService, 
+                                       DoneeService doneeService, 
+                                       RequestService requestService,
+                                       DonationRequestService donationRequestService) { // Injeção no construtor
         this.foodService = foodService;
         this.donorService = donorService;
         this.doneeService = doneeService;
         this.requestService = requestService;
+        this.donationRequestService = donationRequestService;
     }
 
     @Override
-    @Transactional // Garante que se der erro, não salva itens no estoque pela metade
+    @Transactional
     public Response<Void> handle(CreateRequestCommand command) {
         try {
-            // 1 - Buscar e validar Donee (Delega a regra de elegibilidade para a entidade)
+            // 1 - Buscar e validar Donee
             Optional<Donee> dbDonee = doneeService.findById(command.doneeId);
             if (dbDonee.isEmpty()) return Response.of(Error.DoneeDoesNotExist);
             
@@ -83,23 +89,23 @@ public class CreateRequestCommandHandler implements CommandHandler<CreateRequest
                 return Response.of(Error.QuanityAllowanceExceeded);
             }
 
-            // 5 - Criar Request e deduzir estoques (Delega a lógica de preços ao Doador)
-            Request request = donor.generateRequest(donee, requestedItems);
-            requestedItems.forEach(RequestedItem::deductFromStock);
+            // 5 - Criar Request usando o novo Serviço de Domínio
+            Request request = donationRequestService.generateRequest(donor, donee, requestedItems);
             
+            // Atualizar os estoques e quantidades
+            requestedItems.forEach(RequestedItem::deductFromStock);
             donee.incrementQuantityRequested(totalMealsRequested);
 
-            // 6 - Salvar repositórios
+            // 6 - Salvar nos repositórios
             doneeService.save(donee);
             requestService.save(request);
             
-            // Salvando cada alimento individualmente para manter a lógica original (se usar JPA Cascade pode não ser necessário)
+            // Salvar o status atualizado de cada alimento
             requestedItems.forEach(item -> foodService.save(item.getFood()));
 
             return Response.EmptyResponse();
 
         } catch (Exception e) {
-            // Log do erro original. Nunca engula a stacktrace em um catch(Exception)!
             log.error("Erro inesperado ao criar requisição de alimento. Command: {}", command, e);
             return Response.of(Error.UnknownError);
         }

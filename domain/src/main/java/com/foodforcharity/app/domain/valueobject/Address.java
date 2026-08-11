@@ -1,12 +1,18 @@
 package com.foodforcharity.app.domain.valueobject;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.validation.constraints.NotNull;
 
-@Data
-@Embeddable // Diz ao Hibernate para colocar essas colunas na tabela de quem usar essa classe
+@Getter
+@Setter
+@NoArgsConstructor // Necessário para o JPA
+@AllArgsConstructor // Facilita na hora de instanciar o endereço
+@Embeddable 
 public class Address {
 
     @Column(name = "ADDRESS_DESCRIPTION")

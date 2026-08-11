@@ -5,7 +5,7 @@ import com.foodforcharity.app.domain.constant.*;
 import com.foodforcharity.app.domain.entity.Donor;
 import com.foodforcharity.app.domain.entity.Food;
 import com.foodforcharity.app.domain.response.Response;
-import com.foodforcharity.app.domain.service.DonorService;
+import com.foodforcharity.app.domain.valueobject.Address; // <-- IMPORT NOVO
 import com.foodforcharity.app.infrastructure.repository.DonorRepository;
 import com.foodforcharity.app.infrastructure.repository.FoodRepository;
 import com.foodforcharity.app.mediator.CommandHandler;
@@ -40,11 +40,16 @@ public class ModifyMenuTest {
     @Before
     public void init() {
 
-       
         donor = new Donor();
-        donor.setAddressDescription("DonorAddressDescription");
-        donor.setCity("DonorCity");
-        donor.setCountry("DonorCountry");
+        
+        // --- CORREÇÃO DO ENDEREÇO AQUI ---
+        Address address = new Address();
+        address.setAddressDescription("DonorAddressDescription");
+        address.setCity("DonorCity");
+        address.setCountry("DonorCountry");
+        donor.setAddress(address);
+        // ---------------------------------
+        
         donor.setDonorName("DonorName");
         donor.setEmail("donoremail@gmail.com");
         donor.setNumberOfRating(0);
@@ -69,13 +74,14 @@ public class ModifyMenuTest {
         donor.addFood(food);
         donor = donorRepos.save(donor);
     }
+    
     @After
     public void destroy() {
-        donor = ((DonorService) donorRepos).findById(donor.getId()).get();
+        // --- CORREÇÃO DO CLASS CAST EXCEPTION AQUI ---
+        donor = donorRepos.findById(donor.getId()).get();
         
         foodRepos.deleteById(food.getId());
         donorRepos.deleteById(donor.getId());
-       
     }
     
     List<Allergen> aList = Arrays.asList(Allergen.Nuts);

@@ -6,6 +6,8 @@ import com.foodforcharity.app.domain.entity.Donor;
 import com.foodforcharity.app.domain.response.Response;
 import com.foodforcharity.app.domain.service.DonorService;
 import com.foodforcharity.app.domain.service.PersonService;
+// IMPORT NOVO AQUI:
+import com.foodforcharity.app.domain.valueobject.Address; 
 import com.foodforcharity.app.mediator.CommandHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,6 @@ public class DonorRegisterationCommandHandler implements CommandHandler<DonorReg
      * Public Constructor
      *
      * @param personService
-     * @param doneeService
      * @param donorService
      */
     @Autowired
@@ -49,10 +50,16 @@ public class DonorRegisterationCommandHandler implements CommandHandler<DonorReg
             donor.setPassword(command.getPassword()); // for now
 
             donor.setDonorName(command.getName());
-            donor.setAddressDescription(command.getAddress());
-            donor.setCity(command.getCity());
+            
+            // --- CORREÇÃO: Usando a nova classe Address ---
+            Address address = new Address();
+            address.setAddressDescription(command.getAddress());
+            address.setCity(command.getCity());
+            address.setCountry(command.getCountry());
+            donor.setAddress(address); // Atribuindo o endereço ao Doador
+            // ----------------------------------------------
+
             donor.setEmail(command.getEmail());
-            donor.setCountry(command.getCountry());
             donor.setPhoneNumber(command.getPhoneNumber());
             donor.setRating(0);
             donor.setNumberOfRating(0);
@@ -74,14 +81,3 @@ public class DonorRegisterationCommandHandler implements CommandHandler<DonorReg
     }
 
 }
-
-/**
- * Optional<Person> dbPerson = personService.findById(command.personId);
- * step1: valid and check if email is unique step 2 : check personrole ->donee
- * /donor->there is no register as broker option so no exception if donee: check
- * if member count is valid create a donee with all fileds+ donee status=initial
- * and qty requested =0
- * <p>
- * save donee to repositry else if donor: create a donor with all fileds+ donor
- * status=initial save donor to rep save person to rep
- */

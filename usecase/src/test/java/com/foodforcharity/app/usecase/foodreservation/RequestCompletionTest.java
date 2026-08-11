@@ -1,11 +1,14 @@
 package com.foodforcharity.app.usecase.foodreservation;
 
-import com.foodforcharity.app.domain.constant.*;
 import com.foodforcharity.app.domain.constant.Error;
-import com.foodforcharity.app.domain.entity.*;
+import com.foodforcharity.app.domain.constant.*;
+import com.foodforcharity.app.domain.entity.Donee;
+import com.foodforcharity.app.domain.entity.Donor;
+import com.foodforcharity.app.domain.entity.Food;
+import com.foodforcharity.app.domain.entity.Request;
+import com.foodforcharity.app.domain.entity.SubRequest;
 import com.foodforcharity.app.domain.response.Response;
-import com.foodforcharity.app.domain.service.DonorService;
-import com.foodforcharity.app.domain.valueobject.Address; // <-- NOVO IMPORT
+import com.foodforcharity.app.domain.valueobject.Address; 
 import com.foodforcharity.app.infrastructure.repository.DoneeRepository;
 import com.foodforcharity.app.infrastructure.repository.DonorRepository;
 import com.foodforcharity.app.infrastructure.repository.FoodRepository;
@@ -42,26 +45,31 @@ public class RequestCompletionTest {
     @Autowired
     RequestRepository requestRepos;
 
-    Donor donor,donor2;
-    Food food,food2;
+    Donor donor, donor2;
+    Food food, food2;
     Donee donee;
     Request request;
-   
 
     @Before
     public void init() {
 
         donor = new Donor();
-        donor2= new Donor();
-    
-        donor.setAddressDescription("DonorAddressDescription");
-        donor2.setAddressDescription("Donor2AddressDescription");
+        donor2 = new Donor();
+        
+        // --- CORREÇÃO DO ENDEREÇO DO DONOR 1 ---
+        Address donorAddress1 = new Address();
+        donorAddress1.setAddressDescription("DonorAddressDescription");
+        donorAddress1.setCity("DonorCity");
+        donorAddress1.setCountry("DonorCountry");
+        donor.setAddress(donorAddress1);
 
-        donor.setCity("DonorCity");
-        donor2.setCity("Donor2City");
-
-        donor.setCountry("DonorCountry");
-        donor2.setCountry("Donor2Country");
+        // --- CORREÇÃO DO ENDEREÇO DO DONOR 2 ---
+        Address donorAddress2 = new Address();
+        donorAddress2.setAddressDescription("Donor2AddressDescription");
+        donorAddress2.setCity("Donor2City");
+        donorAddress2.setCountry("Donor2Country");
+        donor2.setAddress(donorAddress2);
+        // ---------------------------------------
 
         donor.setDonorName("DonorName");
         donor2.setDonorName("donor2Name");
@@ -89,11 +97,10 @@ public class RequestCompletionTest {
 
         donor.setDonorStatus(DonorStatus.Active);
         donor2.setDonorStatus(DonorStatus.Active);
-        
-
 
         food = new Food();
-        food2= new Food();
+        food2 = new Food();
+        
         food.setFoodName("foodName");
         food.setDescriptionText("descriptionText");
         food.setCuisine(Cuisine.Belgravian);
@@ -117,13 +124,12 @@ public class RequestCompletionTest {
         donor.addFood(food);
         donor2.addFood(food2);
 
-
         donor = donorRepos.save(donor);
         donor2 = donorRepos.save(donor2);
 
         donee = new Donee();
         
-        // --- CORREÇÃO DO ENDEREÇO AQUI ---
+        // --- CORREÇÃO DO ENDEREÇO DO DONEE AQUI ---
         Address doneeAddress = new Address();
         doneeAddress.setAddressDescription("DoneeAddressDescription");
         doneeAddress.setCity("DoneeCity");
@@ -150,8 +156,10 @@ public class RequestCompletionTest {
         subR.setPriceAtPurchase(food.getPrice() * (100 - donor.getDiscountApplied() / 100));
 
         request = new Request();
-        donor.addRequest(request);
-        donee.addRequest(request);
+        
+        // --- CORREÇÃO: Setando o doador diretamente em vez de adicionar na lista bidirecional
+        request.setDonor(donor); 
+        
         donee.addRequest(request);
         request.addSubRequest(subR);
         request.setDiscountApplied(donor.getDiscountApplied());
@@ -160,20 +168,16 @@ public class RequestCompletionTest {
         request.setIsRated(false);
         request.setRequestTime(new Date());
         request = requestRepos.save(request);
-       
-        
-       
-
     }
 
     @After
     public void destroy() {
-        donor = ((DonorService) donorRepos).findById(donor.getId()).get();
-        donor2 = ((DonorService) donorRepos).findById(donor2.getId()).get();
-        if (donor.getRequests() != null)
-            requestRepos.deleteAll(donor.getRequests());
-        if (donor2.getRequests() != null)
-            requestRepos.deleteAll(donor.getRequests()); // Mantive igual ao seu original, verifique se não era donor2.getRequests()
+        donor = donorRepos.findById(donor.getId()).get();
+        donor2 = donorRepos.findById(donor2.getId()).get();
+        
+        // --- CORREÇÃO: Apagando todos os pedidos pelo repositório sem perguntar aos doadores ---
+        requestRepos.deleteAll();
+            
         foodRepos.deleteById(food.getId());
         foodRepos.deleteById(food2.getId());
         donorRepos.deleteById(donor.getId());
@@ -183,26 +187,20 @@ public class RequestCompletionTest {
 
     @Test
     public void successTest() {
-
         RequestCompletionCommand command = new RequestCompletionCommand(donor.getId(), request.getId());
-
         Response<Void> response = handler.handle(command);
         assert (response.success());
     }
 
     @Test
     public void RequestDoesNotExistTest() {
-
-        RequestCompletionCommand command = new RequestCompletionCommand(donor.getId(), 500);
-
+        RequestCompletionCommand command = new RequestCompletionCommand(donor.getId(), 500L);
         Response<Void> response = handler.handle(command);
         assert (response.getError() == Error.RequestDoesNotExist);
-
     }
 
     @Test
     public void InactiveRequestTest() {
-       
         request.setIsActive(false);
         requestRepos.save(request);
 
@@ -210,23 +208,16 @@ public class RequestCompletionTest {
 
         Response<Void> response = handler.handle(command);
         assert (response.getError() == Error.InactiveRequest);
-
-       
-
     }
 
     @Test
     public void DonorRequestDontMatchTest() {
-       
         requestRepos.save(request);
 
         RequestCompletionCommand command = new RequestCompletionCommand(donor2.getId(), request.getId());
 
         Response<Void> response = handler.handle(command);
         assert (response.getError() == Error.DonorRequestDontMatch);
-
-       
-
     }
 
 }
