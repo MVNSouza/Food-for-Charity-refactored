@@ -9,6 +9,8 @@ import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import java.util.*;
+import com.foodforcharity.app.domain.constant.DoneeStatus;
+import com.foodforcharity.app.domain.constant.DoneeType;
 
 /**
  * The persistent class for the DONEE database table.
@@ -140,14 +142,13 @@ public class Donee extends Person {
     }
 
 
-    /**
-     * @param cuisine
+   /**
+     * @param mealType
      * @return
      * @see java.util.Set#remove(java.lang.Object)
      */
-
-    public boolean removeCuisine(Cuisine cuisine) {
-        return cuisines.remove(cuisine);
+    public boolean removeCuisine(MealType mealType) {
+        return mealTypes.remove(mealType);
     }
 
     /**
@@ -179,6 +180,26 @@ public class Donee extends Person {
     public void setPriceRange(DoneePriceRange priceRange){
         this.priceRange = priceRange;
         priceRange.setDonee(this);
+    }
+
+    
+    public boolean isEligibleForRequests() {
+        return this.doneeStatus == DoneeStatus.Active;
+    }
+
+    public boolean canRequestMore(int additionalMealsRequested) {
+        // Se for um indivíduo, não pode pedir mais do que o número de membros
+        if (this.doneeType.equals(DoneeType.Individual)) {
+            return (this.getQuantityRequested() + additionalMealsRequested) <= this.getMemberCount();
+        }
+        // Se for organização, etc., assumimos que não tem limite restrito
+        return true; 
+    }
+
+    public void incrementQuantityRequested(int additionalMealsRequested) {
+        // Inicializa com 0 caso seja null para evitar NullPointerException
+        int currentQuantity = this.getQuantityRequested() != null ? this.getQuantityRequested() : 0;
+        this.setQuantityRequested(currentQuantity + additionalMealsRequested);
     }
 
 }

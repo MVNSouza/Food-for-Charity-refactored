@@ -1,1 +1,0 @@
-{"com.foodforcharity.app":{"name":"com.foodforcharity.app","packages":{}}}
