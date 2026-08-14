@@ -2,41 +2,44 @@ package com.foodforcharity.app.web.dto;
 
 import com.foodforcharity.app.domain.constant.DoneeStatus;
 import com.foodforcharity.app.domain.constant.DoneeType;
-import com.foodforcharity.app.domain.entity.Donee;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class DoneeDto {
 
-    @NotNull
-    private long id;
+    // Se for usado apenas para POST, remova o ID. Se for PUT/Response, mantenha.
+    private Long id;
 
-    @NotNull
+    @NotBlank
     private String name;
 
+    @Valid
     @NotNull
-    private String addressDescription;
+    private AddressDto address;
 
-    @NotNull
-    private String city;
-
-    @NotNull
-    private String country;
-
-    @NotNull
+    @NotBlank
     @Email
     private String email;
 
     @NotNull
+    @PositiveOrZero
     private Integer memberCount;
 
-    @NotNull
+    @NotBlank
     private String phoneNumber;
 
     @NotNull
+    @PositiveOrZero
     private Integer quantityRequested;
 
     @NotNull
@@ -44,24 +47,4 @@ public class DoneeDto {
 
     @NotNull
     private DoneeType type;
-
-    public DoneeDto(Donee donee) {
-        this.id = donee.getId();
-        this.name = donee.getDoneeName(); // Adicionado para corrigir o bug de não mapeamento
-        
-        // --- CORREÇÃO DO ENDEREÇO AQUI ---
-        if (donee.getAddress() != null) {
-            this.addressDescription = donee.getAddress().getAddressDescription();
-            this.city = donee.getAddress().getCity();
-            this.country = donee.getAddress().getCountry();
-        }
-        // ---------------------------------
-        
-        this.email = donee.getEmail();
-        this.memberCount = donee.getMemberCount();
-        this.quantityRequested = donee.getQuantityRequested();
-        this.status = donee.getDoneeStatus();
-        this.type = donee.getDoneeType();
-        this.phoneNumber = donee.getPhoneNumber();
-    }
 }

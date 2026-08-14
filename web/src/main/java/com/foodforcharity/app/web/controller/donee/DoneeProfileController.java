@@ -6,6 +6,7 @@ import com.foodforcharity.app.mediator.Mediator;
 import com.foodforcharity.app.usecase.account.getdonee.GetDoneeCommand;
 import com.foodforcharity.app.web.controller.AbstractController;
 import com.foodforcharity.app.web.dto.DoneeDto;
+import com.foodforcharity.app.web.mapper.DoneeMapper; // 1. Importar o Mapper
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -20,9 +21,14 @@ import java.util.concurrent.ExecutionException;
 @PreAuthorize("hasAuthority('Donee')")
 public class DoneeProfileController extends AbstractController {
 
+    
+    private final DoneeMapper doneeMapper;
+
     @Autowired
-    public DoneeProfileController(Mediator mediator) {
+    public DoneeProfileController(Mediator mediator, DoneeMapper doneeMapper) {
         super(mediator);
+        
+        this.doneeMapper = doneeMapper; 
     }
 
     @GetMapping
@@ -33,11 +39,11 @@ public class DoneeProfileController extends AbstractController {
 
         if (response.hasError()) {
             model.addAttribute("error", response.getError());
-            return "donee/view-profile"; // Interrompe fluxo em caso de erro
+            return "donee/view-profile"; 
         }
 
-        // DICA: Em uma refatoração futura, faça o Mediator retornar DoneeDto diretamente
-        DoneeDto donee = new DoneeDto(response.getResponse());
+      
+        DoneeDto donee = doneeMapper.toDto(response.getResponse());
         model.addAttribute("donee", donee);
 
         return "donee/view-profile";
