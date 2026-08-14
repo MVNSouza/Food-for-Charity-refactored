@@ -1,57 +1,27 @@
 package com.foodforcharity.app.web.dto;
 
 import com.foodforcharity.app.domain.constant.DonorStatus;
-import com.foodforcharity.app.domain.entity.Donor;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class DonorDto {
 
     private long id;
-
     private String name;
-
-    private String addressDescription;
-
-    private String city;
-
-    private String country;
+    
+    // Usando o AddressDto que você já criou na outra refatoração!
+    private AddressDto address; 
 
     private String email;
-
     private Integer rating;
-
     private Integer discountApplied;
-
     private DonorStatus donorStatus;
-
+    
     private List<FoodDto> foods;
-
-    public DonorDto(Donor donor) {
-        this.id = donor.getId();
-        
-        // --- CORREÇÃO DO MAPEAMENTO DE ENDEREÇO AQUI ---
-        if (donor.getAddress() != null) {
-            this.addressDescription = donor.getAddress().getAddressDescription();
-            this.city = donor.getAddress().getCity();
-            this.country = donor.getAddress().getCountry();
-        }
-        // -----------------------------------------------
-
-        this.discountApplied = donor.getDiscountApplied();
-        this.name = donor.getDonorName();
-        this.donorStatus = donor.getDonorStatus();
-        this.email = donor.getEmail();
-
-        if (donor.getFoods() != null)
-            this.foods = donor.getFoods().stream().map(food -> new FoodDto(food)).collect(Collectors.toList());
-        else
-            this.foods = Collections.emptyList();
-
-        this.rating = donor.getNumberOfRating() != 0 ? donor.getRating() / donor.getNumberOfRating() : -1;
-    }
 }
