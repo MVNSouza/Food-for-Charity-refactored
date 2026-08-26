@@ -2,8 +2,10 @@ package com.foodforcharity.app.domain.entity;
 
 import com.foodforcharity.app.domain.constant.*;
 import com.foodforcharity.app.domain.valueobject.Address;
+import com.foodforcharity.app.domain.valueobject.DoneePreferences;
 import com.foodforcharity.app.domain.valueobject.DietaryPreferences;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -12,7 +14,8 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 
-@Data
+@Getter
+@Setter
 @Entity
 @DiscriminatorValue("Donee")
 public class Donee extends Person {
@@ -54,16 +57,9 @@ public class Donee extends Person {
     @NotNull
     private DoneeType doneeType;
 
-    // --- Preferências Mapeadas do JPA ---
-    @OneToOne(mappedBy = "donee", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    private DoneePriceRange priceRange;
-
-    @OneToOne(mappedBy = "donee", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    private DoneeSpiceRange spiceRange;
-
-    // REFATORAÇÃO: Novo Objeto de Valor contendo as listas alimentares!
+    // REFATORAÇÃO: O agregado que encapsula todas as preferências e aumenta a coesão!
     @Embedded
-    private DietaryPreferences dietaryPreferences = new DietaryPreferences();
+    private DoneePreferences preferences = new DoneePreferences();
 
     // --- Relacionamentos ---
     @OneToMany(mappedBy = "donee", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -74,7 +70,7 @@ public class Donee extends Person {
     }
 
     // --------------------------------------------------------
-    // Métodos de Gerenciamento de Relacionamentos
+    // Métodos de Gerenciamento de Relacionamentos (Bidirecionais)
     // --------------------------------------------------------
 
     public Request addRequest(Request request) {
@@ -85,20 +81,11 @@ public class Donee extends Person {
 
     public void removeRequest(Request request) {
         getRequests().remove(request);
+        request.setDonee(null);
     }
 
     public Optional<String> getStatus() {
         return Optional.of(doneeStatus.name());
-    }
-
-    public void setSpiceRange(DoneeSpiceRange spiceRange){
-        this.spiceRange = spiceRange;
-        spiceRange.setDonee(this);
-    }
-
-    public void setPriceRange(DoneePriceRange priceRange){
-        this.priceRange = priceRange;
-        priceRange.setDonee(this);
     }
 
     // --------------------------------------------------------
@@ -110,7 +97,7 @@ public class Donee extends Person {
     }
 
     public boolean canRequestMore(int additionalMealsRequested) {
-        if (this.doneeType.equals(DoneeType.Individual)) {
+        if (this.doneeType == DoneeType.Individual) { 
             return (this.getQuantityRequested() + additionalMealsRequested) <= this.getMemberCount();
         }
         return true; 
@@ -119,5 +106,19 @@ public class Donee extends Person {
     public void incrementQuantityRequested(int additionalMealsRequested) {
         int currentQuantity = this.getQuantityRequested() != null ? this.getQuantityRequested() : 0;
         this.setQuantityRequested(currentQuantity + additionalMealsRequested);
+    }
+
+    /**
+     * Delegação: A entidade Donee apenas repassa os dados para o especialista
+     * DoneePreferences, resolvendo a falta de coesão (LCOM).
+     */
+    public void updatePreferences(
+            List<Cuisine> cuisines, 
+            List<Allergen> allergens, 
+            List<MealType> mealTypes,
+            Integer startPrice, Integer endPrice, 
+            SpiceLevel startSpice, SpiceLevel endSpice) {
+        
+        this.preferences.update(this, cuisines, allergens, mealTypes, startPrice, endPrice, startSpice, endSpice);
     }
 }

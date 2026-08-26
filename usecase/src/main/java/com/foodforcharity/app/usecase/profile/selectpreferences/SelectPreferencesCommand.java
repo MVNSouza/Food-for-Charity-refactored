@@ -11,22 +11,47 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Value;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 public class SelectPreferencesCommand implements Command<Response<Void>> {
-    long doneeId;
-    Range<SpiceLevel>spiceRange;
-    List<Allergen> allergens;
-    Range<Integer> priceRange;
-    List<Cuisine> cuisines;
-    List<MealType> mealTypes;
+    
+    private long doneeId;
+    private Range<SpiceLevel> spiceRange;
+    private Range<Integer> priceRange;
+    
+    // Inicializar as listas evita NullPointerException caso o payload venha sem esses campos
+    private List<Allergen> allergens = new ArrayList<>();
+    private List<Cuisine> cuisines = new ArrayList<>();
+    private List<MealType> mealTypes = new ArrayList<>();
 
+    /**
+     * A classe Range precisa ser estática. 
+     * Como ela usa @Value (que cria objetos imutáveis), ser não-estática faria com que 
+     * cada instância de Range guardasse uma referência oculta para a instância do Command, 
+     * o que pode causar problemas de serialização com o Jackson/Gson.
+     */
     @Value
-    public class Range<T> {
+    public static class Range<T> {
         T start;
         T stop;
     }
-    
+
+    // --- Validações de Domínio Trazidas do Handler ---
+
+    public boolean isPriceRangeValid() {
+        if (priceRange == null || priceRange.getStart() == null || priceRange.getStop() == null) {
+            return false;
+        }
+        return priceRange.getStart() >= 0 && priceRange.getStop() >= priceRange.getStart();
+    }
+
+    public boolean isSpiceRangeValid() {
+        if (spiceRange == null || spiceRange.getStart() == null || spiceRange.getStop() == null) {
+            return false;
+        }
+        return spiceRange.getStop().ordinal() >= spiceRange.getStart().ordinal();
+    }
 }

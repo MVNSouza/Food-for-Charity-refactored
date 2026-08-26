@@ -35,7 +35,7 @@ public class RepositoryTest {
 
     @Test
     public void contextLoads() {
-        assert (foodRepos != null && doneeRepos != null && doneeRepos != null && requestRepos != null);
+        assert (foodRepos != null && doneeRepos != null && requestRepos != null);
     }
 
     @Test
@@ -43,13 +43,11 @@ public class RepositoryTest {
 
         Donor donor = new Donor();
         
-        // --- CORREÇÃO DO DONOR AQUI ---
         Address donorAddress = new Address();
         donorAddress.setAddressDescription("DonorAddressDescription");
         donorAddress.setCity("DonorCity");
         donorAddress.setCountry("DonorCountry");
         donor.setAddress(donorAddress); 
-        // ------------------------------
         
         donor.setDonorName("DonorName");
         donor.setEmail("donoremail@gmail.com");
@@ -75,7 +73,6 @@ public class RepositoryTest {
         donor.addFood(food);
         donor = donorRepos.save(donor);
 
-        // --- CORREÇÃO AQUI ---
         Donee donee = new Donee();
         
         Address doneeAddress = new Address();
@@ -111,10 +108,8 @@ public class RepositoryTest {
         request.setIsRated(false);
         request = requestRepos.save(request);
 
-        // --- CORREÇÃO DO CAST E DA DELEÇÃO DO PEDIDO ---
         donor = donorRepos.findById(donor.getId()).get();
 
-        // Apagamos o pedido criado diretamente pelo repositório
         requestRepos.deleteById(request.getId());
 
         foodRepos.deleteById(food.getId());
@@ -126,7 +121,6 @@ public class RepositoryTest {
 
     @Test
     public void selectPreference(){
-        // --- CORREÇÃO AQUI TAMBÉM ---
         Donee donee = new Donee();
         
         Address doneeAddress = new Address();
@@ -146,9 +140,14 @@ public class RepositoryTest {
         donee.setUsername(donee.getEmail());
         donee = doneeRepos.save(donee);
 
-        donee.setPriceRange(new DoneePriceRange());
-        donee.getPriceRange().setStartPrice(0);
-        donee.getPriceRange().setEndPrice(10);
+        // --- CORREÇÃO DA ROTA DE PREFERÊNCIAS NO TESTE ---
+        DoneePriceRange priceRange = new DoneePriceRange();
+        priceRange.setStartPrice(0);
+        priceRange.setEndPrice(10);
+        priceRange.setDonee(donee); // Vinculação bidirecional obrigatória para o JPA
+
+        donee.getPreferences().setPriceRange(priceRange);
+        // ------------------------------------------------
 
         donee = doneeRepos.save(donee);
     }
