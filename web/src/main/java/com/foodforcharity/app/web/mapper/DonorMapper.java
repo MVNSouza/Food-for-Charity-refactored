@@ -3,7 +3,6 @@ package com.foodforcharity.app.web.mapper;
 import com.foodforcharity.app.domain.entity.Donor;
 import com.foodforcharity.app.web.dto.AddressDto;
 import com.foodforcharity.app.web.dto.DonorDto;
-import com.foodforcharity.app.web.dto.FoodDto;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -11,6 +10,13 @@ import java.util.stream.Collectors;
 
 @Component
 public class DonorMapper {
+
+    private final FoodDtoMapper foodDtoMapper;
+
+    // Injeção de dependência do novo Mapper via construtor (Recomendado pelo Spring)
+    public DonorMapper(FoodDtoMapper foodDtoMapper) {
+        this.foodDtoMapper = foodDtoMapper;
+    }
 
     public DonorDto toDto(Donor donor) {
         if (donor == null) {
@@ -35,9 +41,9 @@ public class DonorMapper {
 
         // 2. Mapeamento da Lista de Alimentos
         if (donor.getFoods() != null) {
-            // Nota: Se houver um FoodMapper, seria ideal usá-lo aqui.
+            // CORREÇÃO: Utilizando o mapper recém-injetado
             dto.setFoods(donor.getFoods().stream()
-                    .map(food -> new FoodDto(food)) 
+                    .map(foodDtoMapper::toDto) 
                     .collect(Collectors.toList()));
         } else {
             dto.setFoods(Collections.emptyList());

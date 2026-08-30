@@ -11,7 +11,8 @@ import com.foodforcharity.app.usecase.profile.getmenuitem.GetMenuItemCommand;
 import com.foodforcharity.app.usecase.profile.modifymenuitem.ModifyMenuItemCommand;
 import com.foodforcharity.app.web.dto.DonorDto;
 import com.foodforcharity.app.web.dto.FoodDto;
-import com.foodforcharity.app.web.mapper.DonorMapper; // 1. Importar o Mapper
+import com.foodforcharity.app.web.mapper.DonorMapper;
+import com.foodforcharity.app.web.mapper.FoodDtoMapper; // Import do novo Mapper
 import com.foodforcharity.app.web.model.MenuModel;
 import org.springframework.stereotype.Service;
 
@@ -21,12 +22,14 @@ import java.util.concurrent.ExecutionException;
 public class DonorService {
 
     private final Mediator mediator;
-    private final DonorMapper donorMapper; // 2. Declarar o Mapper
+    private final DonorMapper donorMapper;
+    private final FoodDtoMapper foodDtoMapper; // Nova dependência
 
-    // 3. Injeção de dependência atualizada via construtor
-    public DonorService(Mediator mediator, DonorMapper donorMapper) {
+    // Injeção de dependência atualizada para incluir o FoodDtoMapper
+    public DonorService(Mediator mediator, DonorMapper donorMapper, FoodDtoMapper foodDtoMapper) {
         this.mediator = mediator;
         this.donorMapper = donorMapper;
+        this.foodDtoMapper = foodDtoMapper;
     }
 
     public DonorDto getDonorProfile(Long personId) throws ExecutionException, InterruptedException {
@@ -37,7 +40,6 @@ public class DonorService {
             throw new RuntimeException(response.getError().getMessage()); 
         }
         
-        // 4. Usar o Mapper em vez de 'new DonorDto(...)'
         return donorMapper.toDto(response.getResponse());
     }
 
@@ -48,8 +50,9 @@ public class DonorService {
         if (response.hasError()) {
             throw new RuntimeException(response.getError().getMessage());
         }
-        // Nota: Se você refatorar o FoodDto no futuro removendo o construtor, precisará de um FoodMapper aqui também!
-        return new FoodDto(response.getResponse());
+        
+        // CORREÇÃO: Utilizando a instância do Mapper injetada pelo Spring
+        return foodDtoMapper.toDto(response.getResponse());
     }
 
     public void addMenuItem(Long personId, MenuModel menuModel) throws ExecutionException, InterruptedException {

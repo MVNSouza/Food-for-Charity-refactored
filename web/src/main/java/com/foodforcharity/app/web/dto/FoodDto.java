@@ -1,48 +1,52 @@
 package com.foodforcharity.app.web.dto;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.foodforcharity.app.domain.constant.Allergen;
 import com.foodforcharity.app.domain.constant.Cuisine;
 import com.foodforcharity.app.domain.constant.MealType;
 import com.foodforcharity.app.domain.constant.SpiceLevel;
-import com.foodforcharity.app.domain.entity.Food;
-import lombok.Data;
+import lombok.Builder;
+import lombok.Value;
 
 import java.util.Set;
 
-@Data
+@Value
+@Builder
 public class FoodDto {
+    
+    @JsonUnwrapped
+    private BasicInfo basicInfo;
+    
+    @JsonUnwrapped
+    private CommercialInfo commercialInfo;
+    
+    @JsonUnwrapped
+    private Characteristics characteristics;
 
-    private long id;
+    // --- Classes Aninhadas Públicas ---
 
-    private String descriptionText;
-
-    private String foodName;
-
-    private Integer mealForNPeople;
-
-    private Double price;
-
-    private Integer quantityAvailable;
-
-    private SpiceLevel spiceLevel;
-
-    private Set<Allergen> allergens;
-
-    private Cuisine cuisine;
-
-    private MealType mealType;
-
-    public FoodDto(Food food) {
-        this.allergens = food.getAllergens();
-        this.cuisine = food.getCuisine();
-        this.descriptionText = food.getDescriptionText();
-        this.foodName = food.getFoodName();
-        this.id = food.getId();
-        this.mealForNPeople = food.getMealForNPeople();
-        this.mealType = food.getMealType();
-        this.price = food.getPrice() / 100.0;
-        this.quantityAvailable = food.getQuantityAvailable();
-        this.spiceLevel = food.getSpiceLevel();
+    @Value
+    @Builder
+    public static class BasicInfo {
+        private long id;
+        private String foodName;
+        private String descriptionText;
     }
 
+    @Value
+    @Builder
+    public static class CommercialInfo {
+        private Double price;
+        private Integer quantityAvailable;
+        private Integer mealForNPeople;
+    }
+
+    @Value
+    @Builder
+    public static class Characteristics {
+        private SpiceLevel spiceLevel;
+        private Set<Allergen> allergens;
+        private Cuisine cuisine;
+        private MealType mealType;
+    }
 }
